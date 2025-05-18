@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spot the Difference</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      background: #f2f5f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      margin-top: 20px;
+      font-size: 2rem;
+    }
+
+    #menu {
+      margin: 30px auto 20px;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 400px;
+    }
+
+    #menu label, #timer {
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    #menu select {
+      padding: 10px;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    #menu button {
+      padding: 12px 20px;
+      font-size: 1rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+      width: 100%;
+      margin-top: 15px;
+    }
+
+    #menu button:hover {
+      background: #0056b3;
+    }
+
+    /* Preview thumbnails in start menu */
+    #imagePreviews {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    #imagePreviews img {
+      width: 150px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      user-select: none;
+    }
+
+    /* Hide game container and info initially */
+    .game-container, #score, #stars, #timer {
+      display: none;
+    }
+
+    .game-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin: 20px auto;
+      max-width: 100%;
+      padding: 0 10px;
+    }
+
+    .image-wrapper {
+      position: relative;
+      width: 45%;
+      max-width: 400px;
+      cursor: pointer;
+    }
+
+    .image-wrapper img {
+      width: 100%;
+      height: auto;
+      display: block;
+      user-select: none;
+    }
+
+    .marker {
+      position: absolute;
+      border: 3px solid red;
+      pointer-events: none;
+      border-radius: 50%;
+      box-shadow: 0 0 10px red;
+      animation: pop 0.5s ease-out;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    #score, #stars {
+      margin-top: 10px;
+      font-size: 1.2rem;
+    }
+
+    #stars span {
+      color: gold;
+      font-size: 1.5rem;
+    }
+
+    #timer {
+      margin-top: 10px;
+      font-size: 1rem;
+      color: #333;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .game-container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .image-wrapper {
+        width: 90%;
+      }
+
+      #menu {
+        padding: 20px;
+      }
+
+      #imagePreviews {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      #imagePreviews img {
+        width: 80%;
+        max-width: 300px;
+      }
+    }
+
+    #winMessage {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border-radius: 10px;
+      padding: 30px 40px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      z-index: 1000;
+      text-align: center;
+      max-width: 90%;
+    }
+
+    #winMessage h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+
+    #winMessage p {
+      margin-bottom: 20px;
+    }
+
+    #winMessage button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      margin: 5px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background: #007B00;
+      color: white;
+      transition: background 0.3s;
+    }
+
+    #winMessage button:hover {
+      background: #005700;
+    }
+
+    #restartBtn {
+      background: #ff5722;
+    }
+
+    #restartBtn:hover {
+      background: #e64a19;
+    }
+
+    #overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 900;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="gameTitle">Spot the Difference</h1>
+
+  <div id="menu">
+    <label for="timeSelect">Select Time Limit:</label>
+    <select id="timeSelect">
+      <option value="30">30 seconds</option>
+      <option value="60" selected>60 seconds</option>
+      <option value="90">90 seconds</option>
+      <option value="120">120 seconds</option>
+    </select>
+
+    <div id="imagePreviews">
+      <img id="preview1" src="" alt="Image preview 1" />
+      <img id="preview2" src="" alt="Image preview 2" />
+    </div>
+
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  <div class="game-container">
+    <div class="image-wrapper" id="image1-wrapper">
+      <img id="image1" src="assets/image1.JPG" alt="Image 1" draggable="false" />
+    </div>
+    <div class="image-wrapper" id="image2-wrapper">
+      <img id="image2" src="assets/image2.JPG" alt="Image 2" draggable="false" />
+    </div>
+  </div>
+
+  <div id="score">Score: 0</div>
+  <div id="stars">Stars: <span id="starCount">☆☆☆</span></div>
+  <div id="timer">Time: 0s / 60s</div>
+
+  <audio id="dingSound" src="assets/button-click.mp3" preload="auto"></audio>
+
+  <div id="overlay"></div>
+  <div id="winMessage">
+    <h2 id="winTitle">You win!</h2>
+    <p id="winDesc">You found all the differences!</p>
+    <button onclick="closeWinMessage()">Close</button>
+    <button id="restartBtn" onclick="restartGame()">Restart</button>
+  </div>
+
+  <script>
+    let config = null;
+    let foundDifferences = [];
+    let score = 0;
+    let startTime = null;
+    let timerInterval = null;
+    let timeLimit = 60;
+
+    const scoreDisplay = document.getElementById("score");
+    const timerDisplay = document.getElementById("timer");
+    const starCountDisplay = document.getElementById("starCount");
+    const dingSound = document.getElementById("dingSound");
+    const image1Wrapper = document.getElementById("image1-wrapper");
+    const image2Wrapper = document.getElementById("image2-wrapper");
+    const preview1 = document.getElementById("preview1");
+    const preview2 = document.getElementById("preview2");
+    const gameContainer = document.querySelector(".game-container");
+    const starsDisplay = document.getElementById("stars");
+
+    image1Wrapper.style.pointerEvents = "none";
+    image2Wrapper.style.pointerEvents = "none";
+
+    window.addEventListener("load", () => {
+      fetch("config.json")
+        .then(res => res.json())
+        .then(data => {
+          config = data;
+          document.getElementById("gameTitle").innerText = config.gameTitle;
+
+          preview1.src = config.images.image1;
+          preview2.src = config.images.image2;
+        })
+        .catch(() => {
+          alert("Failed to load config.json.");
+        });
+    });
+
+    function startGame() {
+      timeLimit = parseInt(document.getElementById("timeSelect").value);
+
+      // Hide menu and show game elements
+      document.getElementById("menu").style.display = "none";
+      gameContainer.style.display = "flex";
+      scoreDisplay.style.display = "block";
+      starsDisplay.style.display = "block";
+      timerDisplay.style.display = "block";
+
+      timerDisplay.textContent = `Time: 0s / ${timeLimit}s`;
+
+      document.getElementById("image1").src = config.images.image1;
+      document.getElementById("image2").src = config.images.image2;
+
+      startTime = Date.now();
+      foundDifferences = [];
+      score = 0;
+      updateScore();
+
+      document.querySelectorAll(".marker").forEach(el => el.remove());
+
+      image1Wrapper.style.pointerEvents = "auto";
+      image2Wrapper.style.pointerEvents = "auto";
+      image1Wrapper.addEventListener("click", handleClick);
+      image2Wrapper.addEventListener("click", handleClick);
+
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        timerDisplay.innerText = `Time: ${elapsed}s / ${timeLimit}s`;
+
+        if (elapsed >= timeLimit) {
+          clearInterval(timerInterval);
+          image1Wrapper.style.pointerEvents = "none";
+          image2Wrapper.style.pointerEvents = "none";
+          showEndMessage(false);
+        }
+      }, 1000);
+    }
+
+    function handleClick(event) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const clickY = event.clientY - rect.top;
+      const imageWidth = event.currentTarget.offsetWidth;
+      const scaleFactor = imageWidth / document.getElementById("image1").naturalWidth;
+
+      for (let i = 0; i < config.differences.length; i++) {
+        if (foundDifferences.includes(i)) continue;
+
+        const diff = config.differences[i];
+        const scaledDiff = {
+          x: diff.x * scaleFactor,
+          y: diff.y * scaleFactor,
+          width: diff.width * scaleFactor,
+          height: diff.height * scaleFactor
+        };
+
+        if (
+          clickX >= scaledDiff.x &&
+          clickX <= scaledDiff.x + scaledDiff.width &&
+          clickY >= scaledDiff.y &&
+          clickY <= scaledDiff.y + scaledDiff.height
+        ) {
+          foundDifferences.push(i);
+          markDifference(event.currentTarget, scaledDiff);
+          dingSound.play();
+          score++;
+          updateScore();
+          break;
+        }
+      }
+    }
+
+    function markDifference(container, diff) {
+      const marker = document.createElement("div");
+      marker.className = "marker";
+      marker.style.left = `${diff.x}px`;
+      marker.style.top = `${diff.y}px`;
+      marker.style.width = `${diff.width}px`;
+      marker.style.height = `${diff.height}px`;
+      container.appendChild(marker);
+    }
+
+    function updateScore() {
+      scoreDisplay.innerText = `Score: ${score}`;
+      updateStars();
+      if (score === config.differences.length) {
+        clearInterval(timerInterval);
+        image1Wrapper.style.pointerEvents = "none";
+        image2Wrapper.style.pointerEvents = "none";
+        showEndMessage(true);
+      }
+    }
+
+    function updateStars() {
+      const total = config.differences.length;
+      const percent = score / total;
+      let stars = "☆☆☆";
+      if (percent >= 1) stars = "★★★";
+      else if (percent >= 0.66) stars = "★★☆";
+      else if (percent >= 0.33) stars = "★☆☆";
+      starCountDisplay.textContent = stars;
+    }
+
+    function showEndMessage(won) {
+      document.getElementById("overlay").style.display = "block";
+      document.getElementById("winMessage").style.display = "block";
+
+      const titleEl = document.getElementById("winTitle");
+      const descEl = document.getElementById("winDesc");
+
+      if (won) {
+        titleEl.textContent = "You Win!";
+        descEl.textContent = "You found all the differences!";
+      } else {
+        titleEl.textContent = "Time's up!";
+        descEl.textContent = "Better luck next time.";
+      }
+    }
+
+    function closeWinMessage() {
+      document.getElementById("overlay").style.display = "none";
+      document.getElementById("winMessage").style.display = "none";
+    }
+
+    function restartGame() {
+      closeWinMessage();
+      // Reset game state
+      document.getElementById("menu").style.display = "block";
+      gameContainer.style.display = "none";
+      scoreDisplay.style.display = "none";
+      starsDisplay.style.display = "none";
+      timerDisplay.style.display = "none";
+
+      image1Wrapper.style.pointerEvents = "none";
+      image2Wrapper.style.pointerEvents = "none";
+      image1Wrapper.removeEventListener("click", handleClick);
+      image2Wrapper.removeEventListener("click", handleClick);
+
+      // Remove markers
+      document.querySelectorAll(".marker").forEach(el => el.remove());
+    }
+  </script>
+</body>
+</html>
