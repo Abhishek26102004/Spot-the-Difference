@@ -1,0 +1,30 @@
+# Spot the Difference Game
+
+A simple and fun **Spot the Difference** game built with HTML, CSS, and JavaScript.  
+Find all the differences between two images within a set time limit!
+
+---
+
+## Features
+
+- Selectable time limit (30, 60, 90, 120 seconds)
+- Visual markers highlight found differences
+- Score tracking with star ratings
+- Win or time-up message with restart option
+- Responsive design for desktop and mobile
+- Sound effect on finding a difference
+
+---
+
+## How to Play
+
+1. Select the time limit from the dropdown menu.
+2. Click **Start Game** to begin.
+3. Spot all the differences by clicking on the images.
+4. Find all differences before time runs out to win!
+5. Restart the game anytime from the win/time-up screen.
+
+---
+
+## Project Structure
+
